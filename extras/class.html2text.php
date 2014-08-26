@@ -78,7 +78,8 @@ class Html2Text
         '/(<table[^>]*>|<\/table>)/i',           // <table> and </table>
         '/(<tr[^>]*>|<\/tr>)/i',                 // <tr> and </tr>
         '/<td[^>]*>(.*?)<\/td>/i',               // <td> and </td>
-        '/<span class="_html2text_ignore">.+?<\/span>/i'  // <span class="_html2text_ignore">...</span>
+        '/<span class="_html2text_ignore">.+?<\/span>/i',  // <span class="_html2text_ignore">...</span>
+        '/<img[^>]*alt="([^"]*)"[^>]*>/i',       // <img alt="blah">
     );
 
     /**
@@ -109,7 +110,8 @@ class Html2Text
         "\n\n",                                 // <table> and </table>
         "\n",                                   // <tr> and </tr>
         "\t\t\\1\n",                            // <td> and </td>
-        ""                                      // <span class="_html2text_ignore">...</span>
+        "",                                     // <span class="_html2text_ignore">...</span>
+        " \\1 "                                 // <img alt="blah"> 
     );
 
     /**
@@ -157,7 +159,7 @@ class Html2Text
         '-',
         '*',
         '£',
-        'EUR',                                  // Euro sign. € ?
+        '€',                                  // Euro sign. € ?
         '|+|amp|+|',                            // Ampersand: see _converter()
         ' ',                                    // Runs of spaces, post-handling
     );
@@ -258,6 +260,11 @@ class Html2Text
         //  Set this value to 0 (or less) to ignore word wrapping
         //  and not constrain text to a fixed-width column.
         'width' => 70,
+
+        /**
+         *  Encoding, for Umlauts etc.
+         */
+        'encoding' => 'UTF-8',
     );
 
     /**
@@ -424,7 +431,7 @@ class Html2Text
         $text = preg_replace($this->ent_search, $this->ent_replace, $text);
 
         // Replace known html entities
-        $text = html_entity_decode($text, ENT_QUOTES);
+        $text = html_entity_decode($text, ENT_QUOTES|(defined('ENT_XHTML') ? constant('ENT_XHTML') : 0), $this->_options['encoding']);
 
         // Remove unknown/unhandled entities (this cannot be done in search-and-replace block)
         $text = preg_replace('/&([a-zA-Z0-9]{2,6}|#[0-9]{2,4});/', '', $text);
@@ -663,15 +670,16 @@ class Html2Text
      */
     private function _strtoupper($str)
     {
-        $str = html_entity_decode($str, ENT_COMPAT);
+        $str = html_entity_decode($str, ENT_COMPAT|(defined('ENT_XHTML') ? constant('ENT_XHTML') : 0), $this->options['encoding']);
 
         if (function_exists('mb_strtoupper'))
             $str = mb_strtoupper($str, 'UTF-8');
         else
             $str = strtoupper($str);
 
-        $str = htmlspecialchars($str, ENT_COMPAT);
+        $str = htmlspecialchars($str, ENT_COMPAT|(defined('ENT_XHTML') ? constant('ENT_XHTML') : 0), $this->options['encoding']);
 
         return $str;
     }
 }
+
