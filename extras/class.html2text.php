@@ -670,14 +670,14 @@ class Html2Text
      */
     private function _strtoupper($str)
     {
-        $str = html_entity_decode($str, ENT_COMPAT|(defined('ENT_XHTML') ? constant('ENT_XHTML') : 0), $this->options['encoding']);
+        $str = html_entity_decode($str, ENT_COMPAT|(defined('ENT_XHTML') ? constant('ENT_XHTML') : 0), $this->_options['encoding']);
 
         if (function_exists('mb_strtoupper'))
             $str = mb_strtoupper($str, 'UTF-8');
         else
             $str = strtoupper($str);
 
-        $str = htmlspecialchars($str, ENT_COMPAT|(defined('ENT_XHTML') ? constant('ENT_XHTML') : 0), $this->options['encoding']);
+        $str = htmlspecialchars($str, ENT_COMPAT|(defined('ENT_XHTML') ? constant('ENT_XHTML') : 0), $this->_options['encoding']);
 
         return $str;
     }
