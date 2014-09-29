@@ -324,6 +324,20 @@ class PHPMailer
     public $Debugoutput = 'echo';
 
     /**
+     * Progress callback. Useful for large messages. Currently only
+     * supported for SMTP. If set, called after each line transfer with
+     * arguments:
+     *
+     * ProgressCallback($totalLineCount)
+     *
+     * where $totalLineCount is the estimated number of lines. This
+     * may change over time if the message body consists of long lines
+     * which have to be broken down.
+     * 
+     */
+    public $ProgressCallback = false;
+
+    /**
      * Whether to keep SMTP connection open after each message.
      * If this is set to true then to close the connection
      * requires an explicit call to smtpClose().
@@ -1292,6 +1306,7 @@ class PHPMailer
         $this->smtp->setTimeout($this->Timeout);
         $this->smtp->setDebugLevel($this->SMTPDebug);
         $this->smtp->setDebugOutput($this->Debugoutput);
+        $this->smtp->setProgressCallback($this->ProgressCallback);
         $this->smtp->setVerp($this->do_verp);
         $hosts = explode(';', $this->Host);
         $lastexception = null;

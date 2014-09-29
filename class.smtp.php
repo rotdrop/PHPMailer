@@ -102,6 +102,20 @@ class SMTP
     public $Debugoutput = 'echo';
 
     /**
+     * Progress callback. Useful for large messages. Currently only
+     * supported for SMTP. If set, called after each line transfer with
+     * arguments:
+     *
+     * ProgressCallback($currentLine, $totalLineCount)
+     *
+     * where $totalLineCount is the estimated number of lines. This
+     * may change over time if the message body consists of long lines
+     * which have to be broken down.
+     * 
+     */
+    public $ProgressCallback = false;
+
+    /**
      * Whether to use VERP.
      * @link http://en.wikipedia.org/wiki/Variable_envelope_return_path
      * @link http://www.postfix.org/VERP_README.html Info on VERP
@@ -539,6 +553,8 @@ class SMTP
             $in_headers = true;
         }
 
+        $totalLines = count($lines);
+        $currentLine = 0;
         foreach ($lines as $line) {
             $lines_out = array();
             if ($in_headers and $line == '') {
@@ -570,6 +586,9 @@ class SMTP
             }
             $lines_out[] = $line;
 
+            --$totalLines;
+            $totalLines += count($lines_out);
+
             // Send the lines to the server
             foreach ($lines_out as $line_out) {
                 //RFC2821 section 4.5.2
@@ -577,11 +596,22 @@ class SMTP
                     $line_out = '.' . $line_out;
                 }
                 $this->client_send($line_out . self::CRLF);
+     
+                // Call the progress callback
+                if (is_callable($this->ProgressCallback)) {
+                  call_user_func($this->ProgressCallback, $currentLine++, $totalLines);
+                }
             }
+        }
+
+        // Call the progress callback
+        if (is_callable($this->ProgressCallback)) {
+          call_user_func($this->ProgressCallback, $currentLine, $totalLines);
         }
 
         // Message data has been sent, complete the command
         return $this->sendCommand('DATA END', '.', 250);
+
     }
 
     /**
@@ -953,4 +983,23 @@ class SMTP
     {
         return $this->Timeout;
     }
+
+    /**
+     * Set debug output method.
+     * @param string $method The function/method to use for debugging output.
+     */
+    public function setProgressCallback($method = false)
+    {
+        $this->ProgressCallback = $method;
+    }
+
+    /**
+     * Get debug output method.
+     * @return string
+     */
+    public function getProgressCallback()
+    {
+        return $this->ProgressCallback;
+    }
+
 }
