@@ -1816,7 +1816,11 @@ class PHPMailer
         return $this->MIMEHeader . $this->mailHeader . self::CRLF . $this->MIMEBody;
     }
 
-
+    public function getMailHeaders()
+    {
+      return $this->MIMEHeader . $this->mailHeader;
+    }
+    
     /**
      * Assemble the message body.
      * Returns an empty string on failure.
