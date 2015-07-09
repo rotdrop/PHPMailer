@@ -333,7 +333,7 @@ class PHPMailer
      * where $totalLineCount is the estimated number of lines. This
      * may change over time if the message body consists of long lines
      * which have to be broken down.
-     * 
+     *
      */
     public $ProgressCallback = false;
 
@@ -1813,14 +1813,21 @@ class PHPMailer
      */
     public function getSentMIMEMessage()
     {
-        return $this->MIMEHeader . $this->mailHeader . self::CRLF . $this->MIMEBody;
+      //   return $this->MIMEHeader . $this->mailHeader . self::CRLF . $this->MIMEBody;
+      return $this->getMailHeaders() . self::CRLF . $this->MIMEBody;
     }
 
     public function getMailHeaders()
     {
-      return $this->MIMEHeader . $this->mailHeader;
+      if (count($this->bcc) > 0 && !strstr($this->MIMEHeader, 'Bcc:')) {
+        // Inject after To: header
+        $bcc = $this->addrAppend('Bcc', $this->bcc);
+        return preg_replace('/^((To:|Cc:)[^\n]+\n)/m', '$1'.$bcc, $this->MIMEHeader) . $this->mailHeader;
+      } else {
+        return $this->MIMEHeader . $this->mailHeader;
+      }
     }
-    
+
     /**
      * Assemble the message body.
      * Returns an empty string on failure.
