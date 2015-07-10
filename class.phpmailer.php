@@ -1819,7 +1819,7 @@ class PHPMailer
 
     public function getMailHeaders()
     {
-      if (count($this->bcc) > 0 && !strstr($this->MIMEHeader, 'Bcc:')) {
+      if (count($this->bcc) > 0 && preg_match('/^Bcc:/m', $this->MIMEHeader) != 1) {
         // Inject after To: header
         $bcc = $this->addrAppend('Bcc', $this->bcc);
         return preg_replace('/^((To:|Cc:)[^\n]+\n)/m', '$1'.$bcc, $this->MIMEHeader) . $this->mailHeader;
