@@ -2603,6 +2603,19 @@ class PHPMailer
     }
 
     /**
+     * Returns the complete headers, but not the body.
+     * Only valid post preSend().
+     *
+     * @see PHPMailer::preSend()
+     *
+     * @return string
+     */
+    public function getMailHeaders()
+    {
+        return static::stripTrailingWSP($this->MIMEHeader . $this->mailHeader);
+    }
+
+    /**
      * Returns the whole MIME message.
      * Includes complete headers and body.
      * Only valid post preSend().
